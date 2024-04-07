@@ -7,11 +7,6 @@ import (
 	"strings"
 )
 
-type Chirp struct {
-	ID   int    `json:"id"`
-	Body string `json:"body"`
-}
-
 func (cfg *apiConfig) handlerChirpsCreate(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Body string `json:"body"`

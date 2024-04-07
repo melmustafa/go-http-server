@@ -31,8 +31,8 @@ func (db *DB) CreateChirp(body string) (Chirp, error) {
 
 func (db *DB) ListChirps() ([]Chirp, error) {
 	db.mux.RLock()
-	defer db.mux.RUnlock()
 	dbData, err := db.loadDB()
+	db.mux.RUnlock()
 	if err != nil {
 		return nil, err
 	}
