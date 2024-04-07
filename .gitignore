@@ -20,5 +20,8 @@
 # Go workspace file
 go.work
 
-# database
+# Database
 *.json
+
+# Environment variables
+.env*

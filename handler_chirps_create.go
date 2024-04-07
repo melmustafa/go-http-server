@@ -3,38 +3,56 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"strings"
 )
 
 func (cfg *apiConfig) handlerChirpsCreate(w http.ResponseWriter, r *http.Request) {
+	authToken := r.Header.Get("Authorization")
+	id, issuer, err := cfg.auth.ValidateToken(authToken)
+	if err != nil {
+		log.Println(err)
+		respondWithError(w, http.StatusUnauthorized, "")
+		return
+	}
+
+	if issuer != cfg.auth.AccessIssuer {
+		respondWithError(w, http.StatusUnauthorized, "")
+		return
+	}
+
 	type parameters struct {
 		Body string `json:"body"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
 	params := parameters{}
-	err := decoder.Decode(&params)
+	err = decoder.Decode(&params)
 	if err != nil {
+		log.Println(err)
 		respondWithError(w, http.StatusInternalServerError, "Couldn't decode parameters")
 		return
 	}
 
 	cleaned, err := validateChirp(params.Body)
 	if err != nil {
+		log.Println(err)
 		respondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	chirp, err := cfg.DB.CreateChirp(cleaned)
+	chirp, err := cfg.DB.CreateChirp(cleaned, id)
 	if err != nil {
+		log.Println(err)
 		respondWithError(w, http.StatusInternalServerError, "Couldn't create chirp")
 		return
 	}
 
 	respondWithJSON(w, http.StatusCreated, Chirp{
-		ID:   chirp.ID,
-		Body: chirp.Body,
+		ID:       chirp.ID,
+		Body:     chirp.Body,
+		AuthorId: chirp.AuthorId,
 	})
 }
 

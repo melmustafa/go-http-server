@@ -1,11 +1,13 @@
 package main
 
 type User struct {
-	Email string `json:"email"`
-	ID    int    `json:"id"`
+	Email       string `json:"email"`
+	ID          int    `json:"id"`
+	IsChirpyRed bool   `json:"is_chirpy_red"`
 }
 
 type Chirp struct {
-	ID   int    `json:"id"`
-	Body string `json:"body"`
+	AuthorId int    `json:"author_id"`
+	Body     string `json:"body"`
+	ID       int    `json:"id"`
 }

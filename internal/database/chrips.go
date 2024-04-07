@@ -1,11 +1,12 @@
 package database
 
 type Chirp struct {
-	ID   int    `json:"id"`
-	Body string `json:"body"`
+	ID       int    `json:"id"`
+	Body     string `json:"body"`
+	AuthorId int    `json:"author_id"`
 }
 
-func (db *DB) CreateChirp(body string) (Chirp, error) {
+func (db *DB) CreateChirp(body string, authorId int) (Chirp, error) {
 	db.mux.Lock()
 	defer db.mux.Unlock()
 
@@ -16,8 +17,9 @@ func (db *DB) CreateChirp(body string) (Chirp, error) {
 
 	id := len(dbStructure.Chirps) + 1
 	chirp := Chirp{
-		ID:   id,
-		Body: body,
+		ID:       id,
+		Body:     body,
+		AuthorId: authorId,
 	}
 	dbStructure.Chirps[id] = chirp
 
@@ -43,7 +45,7 @@ func (db *DB) ListChirps() ([]Chirp, error) {
 	return chirps, nil
 }
 
-func (db *DB) GetChirps(id int) (Chirp, bool, error) {
+func (db *DB) GetChirp(id int) (Chirp, bool, error) {
 	db.mux.RLock()
 	dbData, err := db.loadDB()
 	db.mux.RUnlock()
@@ -52,4 +54,28 @@ func (db *DB) GetChirps(id int) (Chirp, bool, error) {
 	}
 	chirp, ok := dbData.Chirps[id]
 	return chirp, ok, nil
+}
+
+func (db *DB) DeleteChirp(id, authorId int) (bool, bool, error) {
+	db.mux.Lock()
+	defer db.mux.Unlock()
+
+	dbData, err := db.loadDB()
+	if err != nil {
+		return false, false, err
+	}
+
+	chirp, ok := dbData.Chirps[id]
+	if !ok {
+		return false, false, nil
+	}
+
+	if chirp.AuthorId != authorId {
+		return false, true, nil
+	}
+
+	delete(dbData.Chirps, id)
+	db.writeDB(dbData)
+
+	return true, true, nil
 }
